@@ -8,7 +8,6 @@ import { NgControl } from '@angular/forms';
 export class CepMaskDirective implements OnInit {
   private el = inject(ElementRef);
   private ngControl = inject(NgControl, { optional: true });
-  private lastValue = '';
 
   ngOnInit(): void {
     const initialValue = this.el.nativeElement.value;
@@ -21,6 +20,19 @@ export class CepMaskDirective implements OnInit {
   onInput(event: Event): void {
     const inputElement = this.el.nativeElement as HTMLInputElement;
     this.formatValue(inputElement.value);
+  }
+
+  @HostListener('blur', ['$event'])
+  onBlur(event: Event): void {
+    const inputElement = this.el.nativeElement as HTMLInputElement;
+    const digits = inputElement.value.replace(/\D/g, '');
+    
+    if (digits.length > 0 && digits.length !== 8) {
+      if (this.ngControl?.control) {
+        this.ngControl.control.markAsTouched();
+        this.ngControl.control.setErrors({ invalidCepLength: true });
+      }
+    }
   }
 
   private formatValue(value: string): void {
@@ -37,10 +49,23 @@ export class CepMaskDirective implements OnInit {
     
     this.el.nativeElement.value = formatted;
     
-    if (this.lastValue !== digits && this.ngControl?.control) {
+    if (this.ngControl?.control) {
       this.ngControl.control.setValue(formatted, { emitEvent: false });
-      this.ngControl.control.updateValueAndValidity();
-      this.lastValue = digits;
+      
+      if (digits.length === 8) {
+        const currentErrors = this.ngControl.control.errors;
+        if (currentErrors) {
+          const { invalidCepLength, ...otherErrors } = currentErrors;
+          
+          if (Object.keys(otherErrors).length > 0) {
+            this.ngControl.control.setErrors(otherErrors);
+          } else {
+            this.ngControl.control.setErrors(null);
+          }
+        }
+      } else if (digits.length > 0) {
+        this.ngControl.control.setErrors({ invalidCepLength: true });
+      }
     }
   }
 } 

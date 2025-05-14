@@ -11,6 +11,7 @@ import { CepService } from '../../../core/services/cep.service';
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 import { CepMaskDirective } from '../../../shared/directives/cep-mask.directive';
 import { ApiResponse } from '../../../core/models/auth.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-user-address-form',
@@ -33,7 +34,7 @@ import { ApiResponse } from '../../../core/models/auth.model';
                   id="zipCode" 
                   formControlName="zipCode" 
                   class="form-control"
-                  [class.is-invalid]="isFieldInvalid('zipCode')"
+                  [class.is-invalid]="isFieldInvalid('zipCode') || cepError()"
                   placeholder="00000-000"
                   (blur)="validateAndFetchCep()"
                   appCepMask
@@ -51,11 +52,21 @@ import { ApiResponse } from '../../../core/models/auth.model';
                   }
                 </button>
               </div>
-              @if (isFieldInvalid('zipCode')) {
-                <div class="error-message">CEP é obrigatório.</div>
-              }
               @if (cepError()) {
                 <div class="error-message">{{ cepError() }}</div>
+              } 
+              @else if (isFieldInvalid('zipCode')) {
+                <div class="error-message">
+                  @if (addressForm.get('zipCode')?.hasError('required')) {
+                    CEP é obrigatório.
+                  } @else if (addressForm.get('zipCode')?.hasError('invalidCepLength') || addressForm.get('zipCode')?.hasError('invalidCepLengthCustom')) {
+                    O CEP deve ter 8 dígitos numéricos (formato: 00000-000).
+                  } @else if (addressForm.get('zipCode')?.hasError('cepApiError')) {
+                    CEP não encontrado ou inválido.
+                  } @else {
+                    CEP inválido.
+                  }
+                </div>
               }
             </div>
             
@@ -323,6 +334,7 @@ export class UserAddressFormComponent implements OnInit {
   private router = inject(Router);
   private notificationService = inject(NotificationService);
   private cepService = inject(CepService);
+  private authService = inject(AuthService);
   
   addressForm!: FormGroup;
   userId!: number;
@@ -340,10 +352,29 @@ export class UserAddressFormComponent implements OnInit {
     
     this.route.paramMap.subscribe(params => {
       const userIdParam = params.get('id');
+      
       if (!userIdParam) {
-        this.notificationService.showError('ID do usuário não encontrado');
-        this.router.navigate(['/dashboard']);
-        return;
+        const currentUser = this.authService.currentUser();
+        if (currentUser?.id) {
+          this.userId = currentUser.id;
+          
+          const addressIdParam = params.get('addressId');
+          if (addressIdParam) {
+            const addressId = parseInt(addressIdParam, 10);
+            if (!isNaN(addressId)) {
+              this.isEditMode.set(true);
+              this.addressId.set(addressId);
+              this.loadAddress(addressId);
+            }
+          }
+          
+          this.loadUserInfo();
+          return;
+        } else {
+          this.notificationService.showError('ID do usuário não encontrado');
+          this.router.navigate(['/dashboard']);
+          return;
+        }
       }
       
       this.userId = parseInt(userIdParam, 10);
@@ -394,52 +425,100 @@ export class UserAddressFormComponent implements OnInit {
   }
   
   validateAndFetchCep(): void {
-    const zipCode = this.addressForm.get('zipCode')?.value;
-    if (!zipCode) return;
-    
+    const zipCodeControl = this.addressForm.get('zipCode');
+    const zipCode = zipCodeControl?.value;
+
     this.cepError.set(null);
+    let notificationShown = false;
+
+    if (zipCodeControl?.errors) {
+      const { invalidCepLengthCustom, cepApiError, ...otherErrors } = zipCodeControl.errors;
+      zipCodeControl.setErrors(Object.keys(otherErrors).length > 0 ? otherErrors : null);
+    }
+
+    if (!zipCode) {
+      if (!zipCodeControl?.hasError('required') && !notificationShown) {
+        this.notificationService.showError('CEP é obrigatório');
+        notificationShown = true;
+      }
+      zipCodeControl?.markAsTouched();
+      zipCodeControl?.setErrors({ ...(zipCodeControl.errors || {}), required: true });
+      return;
+    }
     
     const cleanZipCode = zipCode.replace(/\D/g, '');
     
     if (cleanZipCode.length !== 8) {
-      this.cepError.set('O CEP deve ter 8 dígitos');
+      if (!zipCodeControl?.hasError('invalidCepLengthCustom') && !notificationShown) {
+        const errorMessage = 'O CEP deve ter 8 dígitos numéricos (formato: 00000-000)';
+        this.cepError.set(errorMessage);
+        this.notificationService.showError(errorMessage);
+        notificationShown = true;
+      }
+      zipCodeControl?.setErrors({ ...(zipCodeControl.errors || {}), invalidCepLengthCustom: true });
       return;
     }
     
+    if (this.isLoadingCep()) return; 
+
     this.isLoadingCep.set(true);
     
     this.cepService.getCepInfo(cleanZipCode).subscribe({
       next: (cepInfo) => {
         this.isLoadingCep.set(false);
         
+        if (cepInfo.erro) {
+          if (!zipCodeControl?.hasError('cepApiError') && !notificationShown) {
+            const errorMessage = 'CEP inválido ou não encontrado. Verifique o número informado.';
+            this.cepError.set(errorMessage);
+            this.notificationService.showError(errorMessage);
+            notificationShown = true;
+          }
+          zipCodeControl?.setErrors({ ...(zipCodeControl.errors || {}), cepApiError: true });
+          this.addressForm.patchValue({
+            street: '',
+            neighborhood: '',
+            city: '',
+            state: '',
+            country: 'Brasil'
+          }, { emitEvent: false });
+          this.addressForm.get('street')?.enable();
+          this.addressForm.get('neighborhood')?.enable();
+          this.addressForm.get('city')?.enable();
+          this.addressForm.get('state')?.enable();
+          return;
+        }
+        
+        if (!zipCodeControl?.hasError('cepApiError') && !notificationShown) {
+          this.notificationService.showSuccess('CEP encontrado com sucesso!');
+          notificationShown = true;
+        }
         this.addressForm.patchValue({
           zipCode: cepInfo.cep,
-          street: cepInfo.logradouro || this.addressForm.get('street')?.value,
-          complement: this.addressForm.get('complement')?.value,
-          neighborhood: cepInfo.bairro || this.addressForm.get('neighborhood')?.value,
-          city: cepInfo.localidade,
-          state: cepInfo.uf,
+          street: cepInfo.logradouro || '',
+          complement: this.addressForm.get('complement')?.value || '',
+          neighborhood: cepInfo.bairro || '',
+          city: cepInfo.localidade || '',
+          state: cepInfo.uf || '',
           country: 'Brasil'
         }, { emitEvent: false });
         
         this.addressForm.get('city')?.disable();
         this.addressForm.get('state')?.disable();
+        if (cepInfo.logradouro) this.addressForm.get('street')?.disable();
+        if (cepInfo.bairro) this.addressForm.get('neighborhood')?.disable();
         
-        if (cepInfo.logradouro) {
-          this.addressForm.get('street')?.disable();
-        }
-        
-        if (cepInfo.bairro) {
-          this.addressForm.get('neighborhood')?.disable();
-        }
-        
-        setTimeout(() => {
-          document.getElementById('number')?.focus();
-        }, 100);
+        setTimeout(() => document.getElementById('number')?.focus(), 100);
       },
       error: (error: any) => {
         this.isLoadingCep.set(false);
-        this.cepError.set(error.message || 'Erro ao consultar o CEP');
+        if (!zipCodeControl?.hasError('cepApiError') && !notificationShown) {
+          const errorMessage = 'Erro ao consultar o CEP. Tente novamente mais tarde.';
+          this.cepError.set(errorMessage);
+          this.notificationService.showError(errorMessage);
+          notificationShown = true;
+        }
+        zipCodeControl?.setErrors({ ...(zipCodeControl.errors || {}), cepApiError: true });
       }
     });
   }

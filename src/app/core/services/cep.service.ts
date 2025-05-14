@@ -45,12 +45,6 @@ export class CepService {
     
     return this.http.get<CepInfo>(`${this.VIA_CEP_URL}${cleanedCep}/json/`)
       .pipe(
-        map(response => {
-          if (response.erro) {
-            throw new Error('CEP não encontrado');
-          }
-          return response;
-        }),
         catchError(error => {
           if (error.status === 404) {
             return throwError(() => new Error('CEP não encontrado'));
