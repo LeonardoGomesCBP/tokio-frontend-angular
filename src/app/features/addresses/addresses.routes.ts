@@ -9,14 +9,17 @@ export const ADDRESSES_ROUTES: Routes = [
   },
   {
     path: 'new',
-    loadComponent: () => import('./form/address-form.component').then(c => c.AddressFormComponent),
+    loadComponent: () => import('./user-address-form/user-address-form.component').then(c => c.UserAddressFormComponent),
     canActivate: [authGuard],
     title: 'Novo Endereço'
   },
   {
     path: ':id/edit',
-    loadComponent: () => import('./form/address-form.component').then(c => c.AddressFormComponent),
+    loadComponent: () => import('./user-address-form/user-address-form.component').then(c => c.UserAddressFormComponent),
     canActivate: [authGuard],
-    title: 'Edit Address'
+    title: 'Edit Address',
+    data: {
+      renderMode: 'client'
+    }
   }
 ]; 

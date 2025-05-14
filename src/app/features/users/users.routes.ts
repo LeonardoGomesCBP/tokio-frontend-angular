@@ -17,7 +17,10 @@ export const USERS_ROUTES: Routes = [
     path: ':id/edit',
     loadComponent: () => import('./form/user-form.component').then(c => c.UserFormComponent),
     canActivate: [adminGuard],
-    title: 'Editar Usuário'
+    title: 'Editar Usuário',
+    data: {
+      renderMode: 'client'
+    }
   },
   {
     path: ':id/addresses',
@@ -29,12 +32,18 @@ export const USERS_ROUTES: Routes = [
     path: ':id/addresses/new',
     loadComponent: () => import('../addresses/user-address-form/user-address-form.component').then(c => c.UserAddressFormComponent),
     canActivate: [adminGuard],
-    title: 'Novo Endereço do Usuário'
+    title: 'Novo Endereço do Usuário',
+    data: {
+      renderMode: 'client'
+    }
   },
   {
     path: ':id/addresses/:addressId/edit',
     loadComponent: () => import('../addresses/user-address-form/user-address-form.component').then(c => c.UserAddressFormComponent),
     canActivate: [adminGuard],
-    title: 'Editar Endereço do Usuário'
+    title: 'Editar Endereço do Usuário',
+    data: {
+      renderMode: 'client'
+    }
   }
 ]; 
