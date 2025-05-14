@@ -1,0 +1,87 @@
+<div class="addresses-container">
+  <div class="addresses-header">
+    <h2>Meus Endereços</h2>
+    <a routerLink="/dashboard/addresses/new" class="btn btn-primary">Novo Endereço</a>
+  </div>
+  
+  <app-address-search
+    [searchTerm]="searchTerm()"
+    [sortBy]="sortBy()"
+    (searchChange)="onSearchChange($event)"
+    (sortChange)="onSortChange($event)"
+  ></app-address-search>
+  
+  @if (isLoading()) {
+    <app-loader></app-loader>
+  } @else if (addresses()?.content?.length) {
+    <app-address-table
+      [addresses]="addresses()?.content || []"
+      [deletingId]="deletingId()"
+      (deleteAddress)="onConfirmDelete($event)"
+    ></app-address-table>
+    
+    @if ((addresses()?.totalPages ?? 0) > 1) {
+      <app-pagination
+        [currentPage]="addresses()?.pageNumber || 0"
+        [totalPages]="addresses()?.totalPages || 0"
+        [isFirst]="addresses()?.isFirst || false"
+        [isLast]="addresses()?.isLast || false"
+        (pageChange)="loadAddresses($event)"
+      ></app-pagination>
+    }
+  } @else {
+    <div class="no-addresses">
+      <p>Nenhum endereço encontrado. Adicione um novo endereço para começar.</p>
+      <a routerLink="/dashboard/addresses/new" class="btn btn-primary">Novo Endereço</a>
+    </div>
+  }
+  
+  <app-confirmation-modal
+    [show]="showConfirmation()"
+    title="Confirmar Exclusão"
+    message="Tem certeza que deseja excluir este endereço?"
+    confirmText="Excluir"
+    (cancel)="cancelDelete()"
+    (confirm)="deleteAddress()"
+  ></app-confirmation-modal>
+  
+  <!-- Lista de todos os endereços para administradores -->
+  @if (isAdmin) {
+    <div class="all-addresses-section">
+      <h2 class="all-addresses-title">Lista de endereços registrados</h2>
+      
+      <app-address-search
+        [searchTerm]="allSearchTerm()"
+        [sortBy]="allSortBy()"
+        (searchChange)="onAllSearchChange($event)"
+        (sortChange)="onAllSortChange($event)"
+      ></app-address-search>
+      
+      @if (isLoadingAll()) {
+        <app-loader></app-loader>
+      } @else if (allAddresses()?.content?.length) {
+        <app-address-table
+          [addresses]="allAddresses()?.content || []"
+          [deletingId]="deletingId()"
+          [showUserId]="true"
+          [isAdminView]="true"
+          (deleteAddress)="onConfirmDelete($event)"
+        ></app-address-table>
+        
+        @if ((allAddresses()?.totalPages ?? 0) > 1) {
+          <app-pagination
+            [currentPage]="allAddresses()?.pageNumber || 0"
+            [totalPages]="allAddresses()?.totalPages || 0"
+            [isFirst]="allAddresses()?.isFirst || false"
+            [isLast]="allAddresses()?.isLast || false"
+            (pageChange)="loadAllAddresses($event)"
+          ></app-pagination>
+        }
+      } @else {
+        <div class="no-addresses">
+          <p>Nenhum endereço registrado no sistema.</p>
+        </div>
+      }
+    </div>
+  }
+</div> 

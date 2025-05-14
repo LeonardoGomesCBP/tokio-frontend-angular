@@ -1,0 +1,82 @@
+.addresses-container {
+  padding-bottom: 30px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.addresses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+h2 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: #4318D1;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #3512b3;
+}
+
+.no-addresses {
+  background-color: white;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.no-addresses p {
+  margin-bottom: 20px;
+  color: #6c757d;
+}
+
+.all-addresses-section {
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.all-addresses-title {
+  font-size: 24px;
+  margin: 0 0 20px 0;
+  color: #4318D1;
+}
+
+@media (max-width: 768px) {
+  .addresses-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  h2 {
+    font-size: 20px;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+} 

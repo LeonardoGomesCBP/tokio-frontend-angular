@@ -1,0 +1,61 @@
+<div class="table-container">
+  <table class="addresses-table">
+    <thead>
+      <tr>
+        @if (showUserId) {
+          <th>Usuário</th>
+        }
+        <th>Rua</th>
+        <th>Número</th>
+        <th>Complemento</th>
+        <th>Bairro</th>
+        <th>Cidade</th>
+        <th>Estado</th>
+        <th>CEP</th>
+        <th>Criado em</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (address of addresses; track address.id) {
+        <tr>
+          @if (showUserId) {
+            <td>{{ address.userId }}</td>
+          }
+          <td>{{ address.street }}</td>
+          <td>{{ address.number }}</td>
+          <td>{{ address.complement || '-' }}</td>
+          <td>{{ address.neighborhood || '-' }}</td>
+          <td>{{ address.city }}</td>
+          <td>{{ address.state }}</td>
+          <td>{{ address.zipCode }}</td>
+          <td>{{ address.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="actions-cell">
+            @if (isAdminView) {
+              <a [routerLink]="['/dashboard/users', address.userId, 'addresses', address.id, 'edit']" 
+                 class="btn-action edit">
+                Editar
+              </a>
+            } @else {
+              <a [routerLink]="['/dashboard/addresses', address.id, 'edit']" 
+                 class="btn-action edit">
+                Editar
+              </a>
+            }
+            <button 
+              class="btn-action delete"
+              (click)="deleteAddress.emit(address)"
+              [disabled]="deletingId === address.id"
+            >
+              @if (deletingId === address.id) {
+                Excluindo...
+              } @else {
+                Excluir
+              }
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div> 

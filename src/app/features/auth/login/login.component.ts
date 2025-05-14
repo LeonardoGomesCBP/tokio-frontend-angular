@@ -186,15 +186,19 @@ export class LoginComponent {
     }
     
     this.isLoading = true;
+    console.log('Login - submitting form:', this.loginForm.value);
     
     this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
         this.isLoading = false;
         this.notificationService.showSuccess(response.message);
+        console.log('Login successful - navigating to dashboard');
         this.router.navigate(['/dashboard']);
+        console.log('Navigation executed');
       },
       error: (error) => {
         this.isLoading = false;
+        console.error('Login failed:', error);
         this.notificationService.showError(
           error.error?.message || 'Login failed. Please try again.'
         );

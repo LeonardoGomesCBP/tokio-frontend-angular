@@ -1,0 +1,27 @@
+<div class="pagination">
+  <button 
+    class="btn-page" 
+    [disabled]="isFirst"
+    (click)="changePage(currentPage - 1)"
+  >
+    Anterior
+  </button>
+  
+  @for (page of getPageNumbers(); track page) {
+    <button 
+      class="btn-page" 
+      [class.active]="currentPage === page"
+      (click)="changePage(page)"
+    >
+      {{ page + 1 }}
+    </button>
+  }
+  
+  <button 
+    class="btn-page" 
+    [disabled]="isLast"
+    (click)="changePage(currentPage + 1)"
+  >
+    Próximo
+  </button>
+</div> 

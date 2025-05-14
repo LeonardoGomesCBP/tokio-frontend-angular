@@ -41,8 +41,11 @@ export class AuthService {
       loginRequest
     ).pipe(
       tap(response => {
-        if (response.result === 'SUCCESS') {
-          this.setSession(response.data);
+        console.log('API Response:', response);
+        if (response.result === 'SUCCESS' || response.result.toLowerCase() === 'success') {
+          const authData = response.data || response;
+          console.log('Auth data to set:', authData);
+          this.setSession(authData);
         }
       })
     );
@@ -80,11 +83,23 @@ export class AuthService {
 
   private setSession(authResult: AuthResponse): void {
     if (this.isBrowser) {
-      localStorage.setItem(this.TOKEN_KEY, authResult.token);
-      localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(authResult));
+      console.log('Setting session - token type:', typeof authResult.token, 'exists:', !!authResult.token);
+      console.log('Setting session - user data:', authResult);
+      
+      if (authResult && authResult.token) {
+        localStorage.setItem(this.TOKEN_KEY, authResult.token);
+        localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(authResult));
+        
+        console.log('Session set - token in storage:', 
+          localStorage.getItem(this.TOKEN_KEY)?.substring(0, 15) + '...');
+        
+        this.isAuthenticated.set(true);
+        this.currentUser.set(authResult);
+        console.log('isAuthenticated signal:', this.isAuthenticated());
+      } else {
+        console.error('Token não encontrado na resposta:', authResult);
+      }
     }
-    this.isAuthenticated.set(true);
-    this.currentUser.set(authResult);
   }
 
   private hasToken(): boolean {

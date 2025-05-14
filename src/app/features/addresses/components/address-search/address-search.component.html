@@ -1,0 +1,27 @@
+<div class="search-and-sort">
+  <div class="search-container">
+    <input 
+      type="text" 
+      class="search-input" 
+      placeholder="Buscar por cidade, estado, rua ou CEP" 
+      [value]="searchTerm"
+      (input)="updateSearch($event)"
+    >
+  </div>
+  
+  <div class="sort-controls">
+    <div class="sort-group">
+      <label for="sortField">Ordenar por:</label>
+      <select 
+        id="sortField" 
+        [value]="sortBy" 
+        (change)="updateSort($event)"
+        class="sort-select"
+      >
+        <option value="zipCode">CEP</option>
+        <option value="city">Cidade</option>
+        <option value="createdAt">Data de criação</option>
+      </select>
+    </div>
+  </div>
+</div> 
