@@ -1,59 +1,78 @@
-# TokioFrontend
+# Teste Técnico - Tokio (Frontend)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.11.
+Aplicação frontend desenvolvida com Angular para o sistema de gestão de usuários e endereços, com autenticação e autorização.
 
-## Development server
+## Tecnologias Utilizadas
 
-To start a local development server, run:
+- Angular 19
+- TypeScript
+- RxJS
+- Docker
+
+## Funcionalidades
+
+- Autenticação e autorização de usuários com JWT
+- CRUD completo de usuários
+- CRUD completo de endereços vinculados a usuários
+- Validação de dados e formulários
+- Paginação e ordenação de resultados
+- Interface responsiva e amigável
+
+## Pré-requisitos
+
+Para executar este projeto sem Docker, você precisa ter instalado:
+
+- [Node.js](https://nodejs.org/) (v18+)
+- [npm](https://www.npmjs.com/) (v9+)
+- [Angular CLI](https://angular.io/cli) (`npm install -g @angular/cli`)
+
+Com Docker, você só precisa ter:
+- [Docker](https://www.docker.com/products/docker-desktop/) (v20.10+)
+
+## Executando a Aplicação
+
+### Usando Docker:
 
 ```bash
+# Clone o repositório
+git clone https://github.com/LeonardoGomesCBP/tokio-frontend-angular
+cd tokio-frontend-angular
+
+# Execute com Docker
+docker-compose up
+```
+
+
+### Sem Docker (desenvolvimento local):
+
+```bash
+# Clone o repositório
+git clone https://github.com/LeonardoGomesCBP/tokio-frontend-angular
+cd tokio-frontend-angular
+
+# Instale as dependências
+npm install
+
+# Inicie o servidor de desenvolvimento
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+A aplicação estará disponível em http://localhost:4200
 
-## Code scaffolding
+## Usuário Admin Inicial
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Ao iniciar a aplicação pela primeira vez, você pode acessar usando:
 
-```bash
-ng generate component component-name
-```
+- Email: admin@example.com
+- Senha: admin123
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Backend Necessário
 
-```bash
-ng generate --help
-```
+Esta aplicação frontend se comunica com uma API backend. Certifique-se de que o backend está executando em:
+- http://localhost:8080
 
-## Building
+O código-fonte da API backend está disponível em: https://github.com/LeonardoGomesCBP/tokio-backend-java
 
-To build the project run:
+## Demo Video
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Confira a demonstração do projeto em vídeo: [Demonstração no YouTube](https://www.youtube.com/watch?v=6pjl9KzFiCU)
