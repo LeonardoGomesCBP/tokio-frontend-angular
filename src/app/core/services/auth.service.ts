@@ -83,8 +83,8 @@ export class AuthService {
 
   private setSession(authResult: AuthResponse): void {
     if (this.isBrowser) {
-      console.log('Setting session - token type:', typeof authResult.token, 'exists:', !!authResult.token);
-      console.log('Setting session - user data:', authResult);
+      // console.log('Setting session - token type:', typeof authResult.token, 'exists:', !!authResult.token);
+      // console.log('Setting session - user data:', authResult);
       
       if (authResult && authResult.token) {
         localStorage.setItem(this.TOKEN_KEY, authResult.token);

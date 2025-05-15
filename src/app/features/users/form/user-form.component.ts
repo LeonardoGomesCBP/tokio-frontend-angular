@@ -248,7 +248,6 @@ export class UserFormComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', this.isEditMode() ? [] : [Validators.required, Validators.minLength(6)]],
-      role: ['ROLE_USER', Validators.required],
       active: [true]
     });
   }
@@ -279,7 +278,12 @@ export class UserFormComponent implements OnInit {
   }
   
   private createUser(userData: User): void {
-    this.userService.createUser(userData).subscribe({
+    const userWithRole = {
+      ...userData,
+      roles: ['ROLE_USER'] 
+    };
+
+    this.userService.createUser(userWithRole as any).subscribe({
       next: (response) => {
         this.isSaving.set(false);
         this.notificationService.showSuccess(response.message);

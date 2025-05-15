@@ -107,7 +107,19 @@ export class AddressListComponent implements OnInit {
     this.isLoading.set(true);
     this.currentPage.set(page);
     
+    const currentUserId = this.authService.currentUser()?.id;
+    
+    if (!currentUserId) {
+      this.isLoading.set(false);
+      this.notificationService.showError('ID do usuário não encontrado');
+      return;
+    }
+    
+    this.userId = currentUserId;
+    
     const direction = this.sortBy() === 'city' ? 'asc' : 'desc';
+    
+    console.log('Carregando endereços para userId:', this.userId);
     
     this.addressService.getAddresses(
       this.userId, 
@@ -123,6 +135,7 @@ export class AddressListComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading.set(false);
+        console.error('Erro ao carregar endereços:', error);
         this.notificationService.showError(
           error.error?.message || 
           'Falha ao carregar endereços. Por favor, tente novamente.'
@@ -182,10 +195,21 @@ export class AddressListComponent implements OnInit {
       return;
     }
     
+    let userIdToUse = this.userId;
+    
+    if (this.isAdmin && address.userId && this.allAddresses()?.content?.some(a => a.id === address.id)) {
+      userIdToUse = address.userId;
+      console.log('Admin excluindo endereço de outro usuário:', address.id, 'userId:', userIdToUse);
+    } else {
+      console.log('Excluindo endereço próprio:', address.id, 'userId:', userIdToUse);
+    }
+    
     this.deletingId.set(address.id);
     this.showConfirmation.set(false);
     
-    this.addressService.deleteAddress(this.userId, address.id).subscribe({
+    console.log('Deletando endereço:', address.id, 'para usuário:', userIdToUse);
+    
+    this.addressService.deleteAddress(userIdToUse, address.id).subscribe({
       next: (response) => {
         this.deletingId.set(null);
         this.notificationService.showSuccess(response.message);
@@ -196,8 +220,9 @@ export class AddressListComponent implements OnInit {
       },
       error: (error) => {
         this.deletingId.set(null);
+        console.error('Erro ao excluir endereço:', error);
         this.notificationService.showError(
-          error.error?.message || 'Failed to delete address. Please try again.'
+          error.error?.message || 'Falha ao excluir o endereço. Por favor, tente novamente.'
         );
       }
     });

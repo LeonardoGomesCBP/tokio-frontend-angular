@@ -352,13 +352,43 @@ export class UserAddressFormComponent implements OnInit {
     
     this.route.paramMap.subscribe(params => {
       const userIdParam = params.get('id');
+      let addressIdParam = params.get('addressId');
+      
+      if (!addressIdParam && userIdParam && !params.get('userId')) {
+        const currentUrl = this.router.url;
+        if (currentUrl.includes('/dashboard/addresses/') && currentUrl.includes('/edit')) {
+          addressIdParam = userIdParam;
+          
+          const currentUser = this.authService.currentUser();
+          if (currentUser?.id) {
+            this.userId = currentUser.id;
+            console.log('Editando endereço próprio:', addressIdParam, 'para usuário:', this.userId);
+            
+            if (addressIdParam) {
+              const addressId = parseInt(addressIdParam, 10);
+              if (!isNaN(addressId)) {
+                this.isEditMode.set(true);
+                this.addressId.set(addressId);
+                this.loadAddress(addressId);
+              }
+            }
+            
+            this.loadUserInfo();
+            return;
+          } else {
+            this.notificationService.showError('ID do usuário não encontrado');
+            this.router.navigate(['/dashboard']);
+            return;
+          }
+        }
+      }
       
       if (!userIdParam) {
         const currentUser = this.authService.currentUser();
         if (currentUser?.id) {
           this.userId = currentUser.id;
+          console.log('Usando ID do usuário logado:', this.userId);
           
-          const addressIdParam = params.get('addressId');
           if (addressIdParam) {
             const addressId = parseInt(addressIdParam, 10);
             if (!isNaN(addressId)) {
@@ -378,6 +408,7 @@ export class UserAddressFormComponent implements OnInit {
       }
       
       this.userId = parseInt(userIdParam, 10);
+      console.log('Admin editando endereço para usuário ID:', this.userId);
       
       if (isNaN(this.userId)) {
         this.notificationService.showError('ID do usuário inválido');
@@ -385,7 +416,6 @@ export class UserAddressFormComponent implements OnInit {
         return;
       }
       
-      const addressIdParam = params.get('addressId');
       if (addressIdParam) {
         const addressId = parseInt(addressIdParam, 10);
         if (!isNaN(addressId)) {
@@ -420,6 +450,7 @@ export class UserAddressFormComponent implements OnInit {
         this.notificationService.showError(
           error.error?.message || 'Falha ao carregar informações do usuário'
         );
+        this.router.navigate(['/dashboard']);
       }
     });
   }
@@ -544,7 +575,11 @@ export class UserAddressFormComponent implements OnInit {
   }
   
   cancel(): void {
-    this.router.navigate(['/dashboard/users', this.userId, 'addresses']);
+    if (this.userId === this.authService.currentUser()?.id) {
+      this.router.navigate(['/dashboard/addresses']);
+    } else {
+      this.router.navigate(['/dashboard/users', this.userId, 'addresses']);
+    }
   }
   
   isFieldInvalid(field: string): boolean {
@@ -578,7 +613,7 @@ export class UserAddressFormComponent implements OnInit {
         this.notificationService.showError(
           error.error?.message || 'Falha ao carregar o endereço. Por favor, tente novamente.'
         );
-        this.router.navigate(['/dashboard/users', this.userId]);
+        this.router.navigate(['/dashboard']);
       }
     });
   }

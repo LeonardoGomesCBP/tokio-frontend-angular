@@ -218,7 +218,7 @@ export class ProfileComponent implements OnInit {
     
     const userData: User = {
       name: this.profileForm.value.name,
-      email: this.profileForm.value.email,
+      email: this.profileForm.get('email')?.value || this.profileForm.getRawValue().email,
     };
     
     this.userService.updateUser(this.userId, userData).subscribe({
@@ -232,7 +232,7 @@ export class ProfileComponent implements OnInit {
       error: (error) => {
         this.isSaving.set(false);
         this.notificationService.showError(
-          error.error?.message || 'Failed to update profile. Please try again.'
+          error.error?.message || 'Falha ao atualizar o perfil.'
         );
       }
     });
@@ -268,7 +268,7 @@ export class ProfileComponent implements OnInit {
       error: (error) => {
         this.isLoading.set(false);
         this.notificationService.showError(
-          error.error?.message || 'Failed to load profile. Please try again.'
+          error.error?.message || 'Falha ao carregar o perfil.'
         );
       }
     });
@@ -277,12 +277,12 @@ export class ProfileComponent implements OnInit {
   private updatePassword(): void {
     this.userService.updatePassword(this.userId, this.profileForm.value.password).subscribe({
       next: (response) => {
-        this.handleSuccess('Profile and password updated successfully.');
+        this.handleSuccess(response.message);
       },
       error: (error) => {
         this.isSaving.set(false);
         this.notificationService.showError(
-          error.error?.message || 'Failed to update password. Please try again.'
+          error.error?.message || 'Falha ao atualizar a senha.'
         );
       }
     });
